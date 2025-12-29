@@ -133,7 +133,11 @@ jobs:
 # ------------------------
     - name: Install tfsec
       run: |
-        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+        TFSEC_VERSION="v1.28.4"
+        curl -sSL https://github.com/aquasecurity/tfsec/releases/download/${TFSEC_VERSION}/tfsec-linux-amd64 -o tfsec
+        chmod +x tfsec
+        sudo mv tfsec /usr/local/bin/
+
 
     # ------------------------
     # Run tfsec (non-blocking)
