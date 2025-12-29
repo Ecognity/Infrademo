@@ -13,9 +13,6 @@ variable "tags" {
 
 
 
-variable "storage_account_name" {
-  default = "insecurestorage123"
-}
 
 variable "log_name" {
   type = string

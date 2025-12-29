@@ -24,12 +24,7 @@ module "rg" {
 
 
 
-module "storage" {
-  source              = "./modules/storage_account"
-  name                = var.storage_account_name
-  resource_group_name = var.rg_name
-  location            = var.location
-}
+
 
 module "log_analytics" {
   source              = "./modules/loganylatics"
