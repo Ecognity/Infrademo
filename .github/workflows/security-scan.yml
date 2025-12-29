@@ -164,8 +164,11 @@ jobs:
     # ------------------------
     # SBOM
     # ------------------------
+# ------------------------
+# SBOM Generation (CycloneDX)
+# ------------------------
     - name: Generate SBOM
-      uses: CycloneDX/gh-terraform-generate-sbom@v1
+      uses: CycloneDX/gh-terraform@v1
       with:
         path: .
         format: json
@@ -175,6 +178,7 @@ jobs:
       with:
         name: terraform-sbom
         path: bom.json
+
 
   # ------------------------
   # CodeQL (Security Tab)
