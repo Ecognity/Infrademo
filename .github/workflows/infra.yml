@@ -27,12 +27,12 @@ jobs:
       with:
         terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Azure Login using OIDC
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.CLIENT_ID }}
-        tenant-id: ${{ secrets.TENENT_ID }}
-        subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+    # - name: Azure Login using OIDC
+    #   uses: azure/login@v2
+    #   with:
+    #     client-id: ${{ secrets.CLIENT_ID }}
+    #     tenant-id: ${{ secrets.TENENT_ID }}
+    #     subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
 
 
     # - name: Get secrets from Azure Key Vault
