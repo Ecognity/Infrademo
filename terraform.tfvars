@@ -7,7 +7,7 @@ tags = {
   owner       = "platform-team"
 }
 
-storage_account_name = "keudemosto12"
+# storage_account_name = "keudemosto12"
 
 log_name = "demolog1"
 
