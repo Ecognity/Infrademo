@@ -127,48 +127,97 @@ jobs:
     # ------------------------
     # tfsec → SARIF
     # ------------------------
-    - name: tfsec scan
-      continue-on-error: true
-      uses: aquasecurity/tfsec-action@v1.0.3
-      with:
-        format: sarif
-        out: tfsec.sarif
+    # - name: tfsec scan
+    #   continue-on-error: true
+    #   uses: aquasecurity/tfsec-action@v1.0.3
+    #   with:
+    #     format: sarif
+    #     out: tfsec.sarif
 
-    - name: Upload tfsec results
+    # - name: Upload tfsec results
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   with:
+    #     sarif_file: tfsec.sarif
+
+    # ------------------------
+# tfsec (Non-blocking + SARIF)
+# ------------------------
+    - name: Run tfsec
+      continue-on-error: true
+      run: |
+        mkdir -p reports
+        tfsec . \
+          --format sarif \
+          --out reports/tfsec.sarif \
+          --no-color || true
+
+    - name: Debug - list reports
+      run: ls -l reports
+
+    - name: Upload tfsec SARIF
       uses: github/codeql-action/upload-sarif@v3
       with:
-        sarif_file: tfsec.sarif
+        sarif_file: reports/tfsec.sarif
+
 
     # ------------------------
     # Checkov → SARIF
     # ------------------------
-    - name: Checkov Scan
-      continue-on-error: true
-      uses: bridgecrewio/checkov-action@v12
-      with:
-        output_format: sarif
-        output_file_path: checkov.sarif
+    # - name: Checkov Scan
+    #   continue-on-error: true
+    #   uses: bridgecrewio/checkov-action@v12
+    #   with:
+    #     output_format: sarif
+    #     output_file_path: checkov.sarif
 
-    - name: Upload Checkov results
+    # - name: Upload Checkov results
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   with:
+    #     sarif_file: checkov.sarif
+
+    - name: Run Checkov
+      continue-on-error: true
+      run: |
+        mkdir -p reports
+        checkov -d . -o sarif --output-file-path reports/checkov.sarif
+
+    - name: Upload Checkov SARIF
       uses: github/codeql-action/upload-sarif@v3
       with:
-        sarif_file: checkov.sarif
+        sarif_file: reports/checkov.sarif
+
 
     # ------------------------
     # Trivy → SARIF
     # ------------------------
-    - name: Trivy IaC Scan
-      continue-on-error: true
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: config
-        format: sarif
-        output: trivy.sarif
+    # - name: Trivy IaC Scan
+    #   continue-on-error: true
+    #   uses: aquasecurity/trivy-action@master
+    #   with:
+    #     scan-type: config
+    #     format: sarif
+    #     output: trivy.sarif
 
-    - name: Upload Trivy results
+    # - name: Upload Trivy results
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   with:
+    #     sarif_file: trivy.sarif
+
+    - name: Run Trivy
+      continue-on-error: true
+      run: |
+        mkdir -p reports
+        trivy config . --format sarif --output reports/trivy.sarif
+
+    - name: Upload Trivy SARIF
       uses: github/codeql-action/upload-sarif@v3
       with:
-        sarif_file: trivy.sarif
+        sarif_file: reports/trivy.sarif
+
+    - name: List all SARIF files
+      run: find . -name "*.sarif"
+   
+
 
     # ------------------------
     # OPA / Conftest
