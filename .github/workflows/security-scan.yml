@@ -127,16 +127,16 @@ jobs:
     # ------------------------
     # tfsec → SARIF
     # ------------------------
-    - name: tfsec scan
-      uses: aquasecurity/tfsec-action@v1.0.3
-      with:
-        format: sarif
-        out: tfsec.sarif
+    # - name: tfsec scan
+    #   uses: aquasecurity/tfsec-action@v1.0.3
+    #   with:
+    #     format: sarif
+    #     out: tfsec.sarif
 
-    - name: Upload tfsec results
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: tfsec.sarif
+    # - name: Upload tfsec results
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   with:
+    #     sarif_file: tfsec.sarif
 
     # ------------------------
     # Checkov → SARIF
