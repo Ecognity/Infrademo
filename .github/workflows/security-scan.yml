@@ -1,0 +1,60 @@
+name: IaC & Secrets Security Scan
+
+on:
+  push:
+    branches: [ "main","feature/infra" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ GITLEAKS – Secrets scanning
+      # - name: Run Gitleaks
+      #   uses: gitleaks/gitleaks-action@v2
+      #   with:
+      #     args: detect --source . --report-format sarif --report-path gitleaks.sarif
+
+      # - name: Upload Gitleaks results
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: gitleaks.sarif
+
+      # 3️⃣ CHECKOV – Terraform IaC scan
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          output: sarif
+          soft_fail: true
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+      # 4️⃣ TRIVY – Terraform config scan (NO Docker)
+      - name: Run Trivy (Terraform)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: sarif
+          output: trivy.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif

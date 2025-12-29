@@ -1,0 +1,78 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "4.56.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {
+    
+  }
+  subscription_id = var.subscription_id
+}
+
+module "rg" {
+  source   = "./modules/resource_group"
+  name     = var.rg_name
+  location = var.location
+  tags     = var.tags
+}
+
+
+
+module "storage" {
+  source              = "./modules/storage_account"
+  name                = var.storage_account_name
+  resource_group_name = var.rg_name
+  location            = var.location
+}
+
+module "log_analytics" {
+  source              = "./Modules/loganylatics"
+  name                = var.log_name
+  location            = var.location
+  resource_group_name = var.rg_name
+ 
+}
+
+module "app_insights" {
+  source              = "./Modules/app_insights"
+  name                = var.appi_name
+  location            = var.location
+  resource_group_name = module.rg.resource_group_name
+  workspace_id        = module.log_analytics.id
+  
+}
+
+data "azurerm_client_config" "current" {}
+
+
+module "key_vault" {
+  source              = "./Modules/key_vault"
+  name                = var.kv_name
+  location            = var.location
+  resource_group_name = module.rg.resource_group_name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  
+}
+
+module "app_service" {
+  source              = "./Modules/app_service"
+  location            = var.location
+  resource_group_name = module.rg.resource_group_name
+  
+
+  app_service_plan_name = var.asp_name
+  web_app_name          = var.web_name
+  sku_name              = var.app_service_sku
+
+  app_insights_connection_string = module.app_insights.connection_string
+
+
+}
+
+
+

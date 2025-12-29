@@ -1,0 +1,27 @@
+rg_name  = "rg-terraform-dev"
+location = "eastus2"
+nsg_name = "inseccure_nsg"
+
+tags = {
+  environment = "dev"
+  owner       = "platform-team"
+}
+
+storage_account_name = "keudemosto12"
+
+log_name = "demolog1"
+
+subscription_id = "d082ec46-cae2-4914-b058-e49b9130f41f"
+
+appi_name = "demo-appi1"
+
+kv_name = "demokv123"
+
+asp_name = "demoaspplan"
+
+web_name = "demowebapp1234"
+
+app_service_sku = "P1v3"
+
+
+
