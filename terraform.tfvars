@@ -23,7 +23,7 @@ web_name = "demowebapp1234"
 
 app_service_sku = "P1v3"
 
-client_secret - F_N8Q~CEQaV36CevsoVx_kr6GJixLGzHsX6EHbOb
+client_secret = F_N8Q~CEQaV36CevsoVx_kr6GJixLGzHsX6EHbOb
 
 
 
