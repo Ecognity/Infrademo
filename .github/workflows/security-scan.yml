@@ -189,6 +189,8 @@ jobs:
         sudo mv conftest /usr/local/bin/
         conftest --version
 
+    - name: Remove backend for PR scans
+      run: rm -f backend.tf
 
     - name: Terraform Init (no backend)
       run: terraform init -backend=false -input=false
