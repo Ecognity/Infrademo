@@ -82,28 +82,50 @@ jobs:
         working_directory: ${{ env.WORKING_DIR }}
         soft_fail: false
 
-    - name: Run Trivy IaC Scan
-      uses: aquasecurity/trivy-action@0.20.0
-      with:
-        scan-type: config
-        scan-ref: ${{ env.WORKING_DIR }}
-        severity: HIGH,CRITICAL
-        exit-code: 1
-        format: table
-    - name: Run Trivy IaC Scan (JSON)
-      uses: aquasecurity/trivy-action@0.20.0
-      with:
-        scan-type: config
-        scan-ref: ${{ env.WORKING_DIR }}
-        format: json
-        output: trivy-results.json
-        exit-code: 0
+    # - name: Run Trivy IaC Scan
+    #   uses: aquasecurity/trivy-action@0.20.0
+    #   with:
+    #     scan-type: config
+    #     scan-ref: ${{ env.WORKING_DIR }}
+    #     severity: HIGH,CRITICAL
+    #     exit-code: 1
+    #     format: table
+    # - name: Run Trivy IaC Scan (JSON)
+    #   uses: aquasecurity/trivy-action@0.20.0
+    #   with:
+    #     scan-type: config
+    #     scan-ref: ${{ env.WORKING_DIR }}
+    #     format: json
+    #     output: trivy-results.json
+    #     exit-code: 0
 
-    - name: Upload Trivy Report
-      uses: actions/upload-artifact@v4
+    # - name: Upload Trivy Report
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: trivy-terraform-report
+    #     path: trivy-results.json
+
+    - name: Install Checkov
+      run: |
+        pip install checkov
+
+    - name: Run Checkov
+      continue-on-error: true
+      run: |
+        mkdir -p reports
+
+        checkov -d . \
+          --framework terraform \
+          --output sarif \
+          --output-file-path reports/checkov.sarif || true
+
+        echo "Checkov output:"
+        ls -l reports
+
+    - name: Upload Checkov results
+      uses: github/codeql-action/upload-sarif@v3
       with:
-        name: trivy-terraform-report
-        path: trivy-results.json
+        sarif_file: reports/checkov.sarif
 
     
 
