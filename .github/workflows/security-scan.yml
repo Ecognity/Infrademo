@@ -199,8 +199,22 @@ jobs:
     - name: Terraform Config to JSON
       run: terraform show -json > tfconfig.json
 
-    - name: Run OPA Policies
-      run: conftest test tfconfig.json --policy policies/terraform
+    # - name: Run OPA Policies
+    #   run: conftest test tfconfig.json --policy policies/terraform
+    
+    - name: Run OPA Policies (Conftest → SARIF)
+      run: |
+        mkdir -p reports
+        conftest test tfconfig.json \
+          --policy policies/terraform \
+          --output sarif \
+          > reports/conftest.sarif
+
+    - name: Upload Conftest SARIF
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: reports/conftest.sarif
+    
 
     # ------------------------
     # SBOM
