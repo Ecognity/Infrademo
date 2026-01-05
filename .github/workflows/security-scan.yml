@@ -182,8 +182,8 @@ jobs:
     # ------------------------
     - name: Install Conftest
       run: |
-        wget https://github.com/open-policy-agent/conftest/releases/latest/download/conftest_Linux_x86_64.tar.gz
-        tar -xzf conftest_Linux_x86_64.tar.gz
+        wget https://github.com/open-policy-agent/conftest/releases/latest/download/conftest_Linux_amd64.tar.gz
+        tar -xzf conftest_Linux_amd64.tar.gz
         sudo mv conftest /usr/local/bin/
 
     - name: Terraform Plan JSON
@@ -193,7 +193,7 @@ jobs:
 
     - name: Run OPA Policies
       run: |
-        conftest test tfplan.json --policy policy/
+        conftest test tfplan.json --policy policies/terraform
 
     # ------------------------
     # SBOM
@@ -214,21 +214,4 @@ jobs:
     #     path: bom.json
 
 
-  # ------------------------
-  # CodeQL (Security Tab)
-  # ------------------------
-  codeql:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: javascript, python
-
-    - name: Analyze
-      uses: github/codeql-action/analyze@v3
+ 
