@@ -34,7 +34,7 @@ all_resources contains r if {
 # Helpers
 ########################################
 missing_tags(r) = missing if {
-  tags := r.values.tags
+  tags := object.get(r.values, "tags", {})
   missing := required_tags - {k | tags[k] != null}
 }
 
