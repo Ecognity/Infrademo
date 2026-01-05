@@ -189,9 +189,9 @@ jobs:
         sudo mv conftest /usr/local/bin/
         conftest --version
 
-        
-    - name: Terraform Init
-      run: terraform init -reconfigure -input=false
+
+    - name: Terraform Init (no backend)
+      run: terraform init -backend=false -input=false
 
 
     - name: Terraform Plan JSON
