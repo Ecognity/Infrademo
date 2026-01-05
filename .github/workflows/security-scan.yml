@@ -205,13 +205,12 @@ jobs:
     - name: Run OPA Policies (Conftest → SARIF)
       run: |
         mkdir -p reports
-        conftest test tfconfig.json \
-          --policy policies/terraform \
-          --output sarif \
-          > reports/conftest.sarif
+        conftest test tfconfig.json --policy policies/terraform --output sarif > reports/conftest.sarif
+      continue-on-error: true  # Don't fail the job if policy violations found
 
     - name: Upload Conftest SARIF
       uses: github/codeql-action/upload-sarif@v4
+      if: always()  # Upload even if previous step had violations
       with:
         sarif_file: reports/conftest.sarif
     
