@@ -4,7 +4,7 @@ nsg_name = "inseccure_nsg"
 
 tags = {
   environment = "dev"
-  owner       = "platform-team"
+
 }
 
 # storage_account_name = "keudemosto12"
