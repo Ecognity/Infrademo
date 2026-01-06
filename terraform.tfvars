@@ -15,7 +15,7 @@ subscription_id = "d082ec46-cae2-4914-b058-e49b9130f41f"
 
 appi_name = "demo-appi1"
 
-kv_name = "demokv12"
+kv_name = "demokv12345"
 
 asp_name = "demoaspplan"
 
