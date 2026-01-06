@@ -9,7 +9,7 @@ tags = {
 
 # storage_account_name = "keudemosto12"
 
-log_name = "demolog1"
+log_name = "demolog2"
 
 subscription_id = "d082ec46-cae2-4914-b058-e49b9130f41f"
 
