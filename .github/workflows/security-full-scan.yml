@@ -1,0 +1,186 @@
+name: Complete Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM UTC
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  actions: read
+
+env:
+  TF_VERSION: 1.6.6
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      # ------------------------
+      # Checkout
+      # ------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ------------------------
+      # Setup Terraform
+      # ------------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # ------------------------
+      # Secret Scanning - Gitleaks
+      # ------------------------
+      - name: Install Gitleaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run Gitleaks (SARIF)
+        run: |
+          gitleaks detect \
+            --source . \
+            --no-git \
+            --redact \
+            --report-format sarif \
+            --report-path gitleaks.sarif \
+            --exit-code 0
+
+      - name: Upload Gitleaks SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
+
+      # ------------------------
+      # Terraform Validation
+      # ------------------------
+      - name: Terraform Init (No Backend)
+        run: terraform init -backend=false
+        working-directory: ./envs/dev
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./envs/dev
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      # ------------------------
+      # tfsec Security Scan
+      # ------------------------
+      - name: Install tfsec
+        run: |
+          TFSEC_VERSION="v1.28.4"
+          curl -sSL https://github.com/aquasecurity/tfsec/releases/download/${TFSEC_VERSION}/tfsec-linux-amd64 -o tfsec
+          chmod +x tfsec
+          sudo mv tfsec /usr/local/bin/
+
+      - name: Run tfsec
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          tfsec . \
+            --format sarif \
+            --out reports/tfsec.sarif || true
+
+      - name: Upload tfsec results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/tfsec.sarif
+          category: tfsec
+
+      # ------------------------
+      # Checkov Security Scan
+      # ------------------------
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          checkov -d . \
+            --framework terraform \
+            --compact --quiet \
+            --soft-fail \
+            --output sarif \
+            --output-file-path reports/checkov.sarif || true
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/checkov.sarif
+          category: checkov
+
+      # ------------------------
+      # Trivy Security Scan
+      # ------------------------
+      - name: Run Trivy IaC Scan
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          format: sarif
+          output: trivy.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
+
+      # ------------------------
+      # OPA Policy Testing
+      # ------------------------
+      - name: Install Conftest
+        run: |
+          CONFTEST_VERSION=0.66.0
+          wget https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz
+          tar -xzf conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz
+          chmod +x conftest
+          sudo mv conftest /usr/local/bin/
+          conftest --version
+
+      - name: Remove backend configuration for security scanning
+        run: rm -f envs/dev/backend.tf
+
+      - name: Terraform Config to JSON
+        working-directory: ./envs/dev
+        run: |
+          terraform init -backend=false -input=false
+          terraform plan -out=tfplan -input=false || true
+          terraform show -json tfplan > ../../tfconfig.json
+
+      - name: Run OPA Policy Tests
+        continue-on-error: true
+        run: conftest test tfconfig.json --policy policies/terraform
+
+      # ------------------------
+      # Security Summary
+      # ------------------------
+      - name: Generate Security Report Summary
+        if: always()
+        run: |
+          echo "# Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Scans Performed:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Gitleaks (Secret Detection)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ tfsec (Terraform Security)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Checkov (IaC Security)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Trivy (Vulnerability Scanning)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ OPA/Conftest (Policy Compliance)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Review the Security tab for detailed findings." >> $GITHUB_STEP_SUMMARY

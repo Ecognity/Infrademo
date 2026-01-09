@@ -1,0 +1,17 @@
+# name: PR → Develop
+
+# on:
+#   pull_request:
+#     branches: [ develop ]
+
+# permissions:
+#   contents: read
+#   pull-requests: write
+#   id-token: write
+
+# jobs:
+#   plan:
+#     uses: kishoreismac/workflow-templates/.github/workflows/terraform-plan.yml@v1
+#     with:
+#       working-dir: .
+#     secrets: inherit

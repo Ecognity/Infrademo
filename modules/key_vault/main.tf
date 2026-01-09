@@ -8,8 +8,12 @@ resource "azurerm_key_vault" "this" {
   # Security
   purge_protection_enabled      = true
   soft_delete_retention_days    = 14
-  enable_rbac_authorization     = true
+  rbac_authorization_enabled    = true
   public_network_access_enabled = true
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+ }
 
   tags = var.tags
 

@@ -1,165 +1,165 @@
-name: Terraform Azure RG
+# name: Terraform Azure RG
 
-on:
-  push:
-    branches: [ "main" ]
+# on:
+#   push:
+#     branches: [ "null" ]
   
 
-permissions:
-  id-token: write
-  contents: read
-  security-events: write
+# permissions:
+#   id-token: write
+#   contents: read
+#   security-events: write
   
-env:
-  TF_VERSION: 1.6.6
-  WORKING_DIR: .
-  # KEYVAULT_NAME: keu-demo-kv
+# env:
+#   TF_VERSION: 1.6.6
+#   WORKING_DIR: .
+#   # KEYVAULT_NAME: keu-demo-kv
 
-jobs:
-  terraform:
-    runs-on: ubuntu-latest
+# jobs:
+#   terraform:
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+#     steps:
+#     - name: Checkout repo
+#       uses: actions/checkout@v4
 
-    # - name: Install Gitleaks
-    #   run: |
-    #     curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz -o gitleaks.tar.gz
-    #     tar -xzf gitleaks.tar.gz
-    #     sudo mv gitleaks /usr/local/bin/
+#     # - name: Install Gitleaks
+#     #   run: |
+#     #     curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz -o gitleaks.tar.gz
+#     #     tar -xzf gitleaks.tar.gz
+#     #     sudo mv gitleaks /usr/local/bin/
 
-    # - name: Run Gitleaks (SARIF)
-    #   run: |
-    #     gitleaks detect \
-    #       --source . \
-    #       --no-git \
-    #       --redact \
-    #       --report-format sarif \
-    #       --report-path gitleaks.sarif \
-    #       --exit-code 0
+#     # - name: Run Gitleaks (SARIF)
+#     #   run: |
+#     #     gitleaks detect \
+#     #       --source . \
+#     #       --no-git \
+#     #       --redact \
+#     #       --report-format sarif \
+#     #       --report-path gitleaks.sarif \
+#     #       --exit-code 0
 
-    # - name: Upload Gitleaks SARIF
-    #   uses: github/codeql-action/upload-sarif@v3
-    #   with:
-    #     sarif_file: gitleaks.sarif
+#     # - name: Upload Gitleaks SARIF
+#     #   uses: github/codeql-action/upload-sarif@v3
+#     #   with:
+#     #     sarif_file: gitleaks.sarif
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
+#     - name: Setup Terraform
+#       uses: hashicorp/setup-terraform@v3
+#       with:
+#         terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Azure Login using OIDC
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.CLIENT_ID }}
-        tenant-id: ${{ secrets.TENENT_ID }}
-        subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+#     - name: Azure Login using OIDC
+#       uses: azure/login@v2
+#       with:
+#         client-id: ${{ secrets.CLIENT_ID }}
+#         tenant-id: ${{ secrets.TENENT_ID }}
+#         subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-
-
-    # - name: Get secrets from Azure Key Vault
-    #   id : keyvault
-    #   uses: azure/get-keyvault-secrets@v1
-    #   with:
-    #     keyvault: ${{ env.KEYVAULT_NAME }}
-    #     secrets: |
-    #       client-id1
-    #       tenent-id1
-    #       subscription-id1
+#     - name: Setup Terraform
+#       uses: hashicorp/setup-terraform@v3
 
 
-    - name: Export Terraform Azure OIDC vars
-      run: |
-        echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
-        echo "ARM_CLIENT_ID=${{ secrets.CLIENT_ID }}" >> $GITHUB_ENV
-        echo "ARM_TENANT_ID=${{ secrets.TENENT_ID }}" >> $GITHUB_ENV
-        echo "ARM_SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+#     # - name: Get secrets from Azure Key Vault
+#     #   id : keyvault
+#     #   uses: azure/get-keyvault-secrets@v1
+#     #   with:
+#     #     keyvault: ${{ env.KEYVAULT_NAME }}
+#     #     secrets: |
+#     #       client-id1
+#     #       tenent-id1
+#     #       subscription-id1
 
-    # - name: Export Terraform ARM variables
-    #   run: |
-    #     echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
-    #     echo "ARM_CLIENT_ID=${{ steps.keyvault.outputs.client-id1 }}" >> $GITHUB_ENV
-    #     echo "ARM_TENANT_ID=${{ steps.keyvault.outputs.tenent-id1 }}" >> $GITHUB_ENV
-    #     echo "ARM_SUBSCRIPTION_ID=${{ steps.keyvault.outputs.subscription-id1 }}" >> $GITHUB_ENV
 
-    - name: Terraform Init
-      working-directory: ${{ env.WORKING_DIR }}
-      run: terraform init
+#     - name: Export Terraform Azure OIDC vars
+#       run: |
+#         echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+#         echo "ARM_CLIENT_ID=${{ secrets.CLIENT_ID }}" >> $GITHUB_ENV
+#         echo "ARM_TENANT_ID=${{ secrets.TENENT_ID }}" >> $GITHUB_ENV
+#         echo "ARM_SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}" >> $GITHUB_ENV
 
-    - name: Terraform Format
-      working-directory: ${{ env.WORKING_DIR }}
-      run: terraform fmt -check -recursive
+#     # - name: Export Terraform ARM variables
+#     #   run: |
+#     #     echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+#     #     echo "ARM_CLIENT_ID=${{ steps.keyvault.outputs.client-id1 }}" >> $GITHUB_ENV
+#     #     echo "ARM_TENANT_ID=${{ steps.keyvault.outputs.tenent-id1 }}" >> $GITHUB_ENV
+#     #     echo "ARM_SUBSCRIPTION_ID=${{ steps.keyvault.outputs.subscription-id1 }}" >> $GITHUB_ENV
 
-    - name: Terraform Validate
-      working-directory: ${{ env.WORKING_DIR }}
-      run: terraform validate
+#     - name: Terraform Init
+#       working-directory: ${{ env.WORKING_DIR }}
+#       run: terraform init
 
-    # 🔐 tfsec Security Scan
-    - name: Run tfsec
-      uses: aquasecurity/tfsec-action@v1.0.3
-      with:
-        working_directory: ${{ env.WORKING_DIR }}
-        soft_fail: false
+#     - name: Terraform Format
+#       working-directory: ${{ env.WORKING_DIR }}
+#       run: terraform fmt -check -recursive
 
-    # - name: Run Trivy IaC Scan
-    #   uses: aquasecurity/trivy-action@0.20.0
-    #   with:
-    #     scan-type: config
-    #     scan-ref: ${{ env.WORKING_DIR }}
-    #     severity: HIGH,CRITICAL
-    #     exit-code: 1
-    #     format: table
-    # - name: Run Trivy IaC Scan (JSON)
-    #   uses: aquasecurity/trivy-action@0.20.0
-    #   with:
-    #     scan-type: config
-    #     scan-ref: ${{ env.WORKING_DIR }}
-    #     format: json
-    #     output: trivy-results.json
-    #     exit-code: 0
+#     - name: Terraform Validate
+#       working-directory: ${{ env.WORKING_DIR }}
+#       run: terraform validate
 
-    # - name: Upload Trivy Report
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: trivy-terraform-report
-    #     path: trivy-results.json
+#     # 🔐 tfsec Security Scan
+#     - name: Run tfsec
+#       uses: aquasecurity/tfsec-action@v1.0.3
+#       with:
+#         working_directory: ${{ env.WORKING_DIR }}
+#         soft_fail: false
 
-    # - name: Install Checkov
-    #   run: |
-    #     pip install checkov
+#     # - name: Run Trivy IaC Scan
+#     #   uses: aquasecurity/trivy-action@0.20.0
+#     #   with:
+#     #     scan-type: config
+#     #     scan-ref: ${{ env.WORKING_DIR }}
+#     #     severity: HIGH,CRITICAL
+#     #     exit-code: 1
+#     #     format: table
+#     # - name: Run Trivy IaC Scan (JSON)
+#     #   uses: aquasecurity/trivy-action@0.20.0
+#     #   with:
+#     #     scan-type: config
+#     #     scan-ref: ${{ env.WORKING_DIR }}
+#     #     format: json
+#     #     output: trivy-results.json
+#     #     exit-code: 0
 
-    # - name: Run Checkov
-    #   continue-on-error: true
-    #   run: |
-    #     mkdir -p reports
+#     # - name: Upload Trivy Report
+#     #   uses: actions/upload-artifact@v4
+#     #   with:
+#     #     name: trivy-terraform-report
+#     #     path: trivy-results.json
 
-    #     checkov -d . \
-    #       --framework terraform \
-    #       --output sarif \
-    #       --output-file-path reports/checkov.sarif || true
+#     # - name: Install Checkov
+#     #   run: |
+#     #     pip install checkov
 
-    #     echo "Checkov output:"
-    #     ls -l reports
+#     # - name: Run Checkov
+#     #   continue-on-error: true
+#     #   run: |
+#     #     mkdir -p reports
 
-    # - name: Upload Checkov results
-    #   uses: github/codeql-action/upload-sarif@v3
-    #   with:
-    #     sarif_file: reports/checkov.sarif
+#     #     checkov -d . \
+#     #       --framework terraform \
+#     #       --output sarif \
+#     #       --output-file-path reports/checkov.sarif || true
+
+#     #     echo "Checkov output:"
+#     #     ls -l reports
+
+#     # - name: Upload Checkov results
+#     #   uses: github/codeql-action/upload-sarif@v3
+#     #   with:
+#     #     sarif_file: reports/checkov.sarif
 
     
 
-    - name: Terraform Plan
-      working-directory: ${{ env.WORKING_DIR }}
-      run: terraform plan
+#     - name: Terraform Plan
+#       working-directory: ${{ env.WORKING_DIR }}
+#       run: terraform plan
 
-    # - name: Terraform Apply
-    #   if: github.ref == 'refs/heads/main'
-    #   working-directory: ${{ env.WORKING_DIR }}
-    #   env:
-    #     ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-    #     ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
-    #     ARM_TENANT_ID: ${{ secrets.TENENT_ID }}
-    #   run: terraform apply -auto-approve
+#     # - name: Terraform Apply
+#     #   if: github.ref == 'refs/heads/main'
+#     #   working-directory: ${{ env.WORKING_DIR }}
+#     #   env:
+#     #     ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+#     #     ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
+#     #     ARM_TENANT_ID: ${{ secrets.TENENT_ID }}
+#     #   run: terraform apply -auto-approve

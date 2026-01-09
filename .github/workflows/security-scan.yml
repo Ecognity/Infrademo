@@ -1,237 +1,237 @@
-name: Infra PR Security Pipeline
+# name: Infra PR Security Pipeline
 
-on:
-  pull_request:
-    branches: [ main, develop ]
-  # push:
-  #   branches: [ main ]
+# on:
+#   pull_request:
+#     branches: [ main, develop ]
+#   # push:
+#   #   branches: [ main ]
 
-permissions:
-  contents: read
-  security-events: write
-  pull-requests: write
+# permissions:
+#   contents: read
+#   security-events: write
+#   pull-requests: write
 
-jobs:
-  security-scan:
-    runs-on: ubuntu-latest
+# jobs:
+#   security-scan:
+#     runs-on: ubuntu-latest
 
-    steps:
-    # ------------------------
-    # Checkout
-    # ------------------------
-    - uses: actions/checkout@v4
+#     steps:
+#     # ------------------------
+#     # Checkout
+#     # ------------------------
+#     - uses: actions/checkout@v4
 
-    # ------------------------
-    # Secrets
-    # ------------------------
+#     # ------------------------
+#     # Secrets
+#     # ------------------------
 
-    - name: Install Gitleaks
-      run: |
-        curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz -o gitleaks.tar.gz
-        tar -xzf gitleaks.tar.gz
-        sudo mv gitleaks /usr/local/bin/
+#     - name: Install Gitleaks
+#       run: |
+#         curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz -o gitleaks.tar.gz
+#         tar -xzf gitleaks.tar.gz
+#         sudo mv gitleaks /usr/local/bin/
 
-    - name: Run Gitleaks (SARIF)
-      run: |
-        gitleaks detect \
-          --source . \
-          --no-git \
-          --redact \
-          --report-format sarif \
-          --report-path gitleaks.sarif \
-          --exit-code 0
+#     - name: Run Gitleaks (SARIF)
+#       run: |
+#         gitleaks detect \
+#           --source . \
+#           --no-git \
+#           --redact \
+#           --report-format sarif \
+#           --report-path gitleaks.sarif \
+#           --exit-code 0
 
-    - name: Upload Gitleaks SARIF
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: gitleaks.sarif
-
-
+#     - name: Upload Gitleaks SARIF
+#       uses: github/codeql-action/upload-sarif@v3
+#       with:
+#         sarif_file: gitleaks.sarif
 
 
-    # ------------------------
-    # Terraform
-    # ------------------------
-    - uses: hashicorp/setup-terraform@v3
 
-    # - name: Terraform Format
-    #   run: terraform fmt -check -recursive
 
-    - name: Terraform Init
-      run: terraform init -backend=false
+#     # ------------------------
+#     # Terraform
+#     # ------------------------
+#     - uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Validate
-      run: terraform validate
+#     # - name: Terraform Format
+#     #   run: terraform fmt -check -recursive
 
-    # ------------------------
-    # tfsec → SARIF
-    # ------------------------
+#     - name: Terraform Init
+#       run: terraform init -backend=false
+
+#     - name: Terraform Validate
+#       run: terraform validate
+
+#     # ------------------------
+#     # tfsec → SARIF
+#     # ------------------------
    
-   # ------------------------
-# Install tfsec
-# ------------------------
-    - name: Install tfsec
-      run: |
-        TFSEC_VERSION="v1.28.4"
-        curl -sSL https://github.com/aquasecurity/tfsec/releases/download/${TFSEC_VERSION}/tfsec-linux-amd64 -o tfsec
-        chmod +x tfsec
-        sudo mv tfsec /usr/local/bin/
+#    # ------------------------
+# # Install tfsec
+# # ------------------------
+#     - name: Install tfsec
+#       run: |
+#         TFSEC_VERSION="v1.28.4"
+#         curl -sSL https://github.com/aquasecurity/tfsec/releases/download/${TFSEC_VERSION}/tfsec-linux-amd64 -o tfsec
+#         chmod +x tfsec
+#         sudo mv tfsec /usr/local/bin/
 
 
-    # ------------------------
-    # Run tfsec (non-blocking)
-    # ------------------------
-    - name: Run tfsec
-      continue-on-error: true
-      run: |
-        mkdir -p reports
-        tfsec . \
-          --format sarif \
-          --out reports/tfsec.sarif || true
+#     # ------------------------
+#     # Run tfsec (non-blocking)
+#     # ------------------------
+#     - name: Run tfsec
+#       continue-on-error: true
+#       run: |
+#         mkdir -p reports
+#         tfsec . \
+#           --format sarif \
+#           --out reports/tfsec.sarif || true
 
-        echo "tfsec output:"
-        ls -l reports
+#         echo "tfsec output:"
+#         ls -l reports
 
-    # ------------------------
-    # Upload tfsec SARIF
-    # ------------------------
-    - name: Upload tfsec results
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: reports/tfsec.sarif
-
-
-    # ------------------------
-    # Checkov → SARIF
-    # ------------------------
-    - name: Install Checkov
-      run: |
-        pip install checkov
-
-    - name: Run Checkov
-      continue-on-error: true
-      run: |
-        mkdir -p reports
-
-        checkov -d . \
-          --framework terraform \
-          --output sarif \
-          --output-file-path reports/checkov.sarif || true
-
-        echo "Checkov output:"
-        ls -l reports
-
-    - name: Upload Checkov results
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: reports/checkov.sarif
+#     # ------------------------
+#     # Upload tfsec SARIF
+#     # ------------------------
+#     - name: Upload tfsec results
+#       uses: github/codeql-action/upload-sarif@v3
+#       with:
+#         sarif_file: reports/tfsec.sarif
 
 
+#     # ------------------------
+#     # Checkov → SARIF
+#     # ------------------------
+#     - name: Install Checkov
+#       run: |
+#         pip install checkov
+
+#     - name: Run Checkov
+#       continue-on-error: true
+#       run: |
+#         mkdir -p reports
+
+#         checkov -d . \
+#           --framework terraform \
+#           --output sarif \
+#           --output-file-path reports/checkov.sarif || true
+
+#         echo "Checkov output:"
+#         ls -l reports
+
+#     - name: Upload Checkov results
+#       uses: github/codeql-action/upload-sarif@v3
+#       with:
+#         sarif_file: reports/checkov.sarif
 
 
 
-    # ------------------------
-    # Trivy → SARIF
-    # ------------------------
-    - name: Trivy IaC Scan
-      continue-on-error: true
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: config
-        format: sarif
-        output: trivy.sarif
 
-    - name: Upload Trivy results
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: trivy.sarif
 
-  # 4️⃣ TRIVY – Terraform config scan (NO Docker)
-    # - name: Run Trivy (Terraform)
-    #   uses: aquasecurity/trivy-action@0.20.0
-    #   with:
-    #     scan-type: config
-    #     scan-ref: .
-    #     format: sarif
-    #     output: trivy.sarif
-    #     severity: CRITICAL,HIGH
+#     # ------------------------
+#     # Trivy → SARIF
+#     # ------------------------
+#     - name: Trivy IaC Scan
+#       continue-on-error: true
+#       uses: aquasecurity/trivy-action@master
+#       with:
+#         scan-type: config
+#         format: sarif
+#         output: trivy.sarif
 
-    # - name: Upload Trivy results
-    #   uses: github/codeql-action/upload-sarif@v3
-    #   with:
-    #     sarif_file: trivy.sarif
+#     - name: Upload Trivy results
+#       uses: github/codeql-action/upload-sarif@v3
+#       with:
+#         sarif_file: trivy.sarif
 
-    # - name: Run Trivy
-    #   continue-on-error: true
-    #   run: |
-    #     mkdir -p reports
-    #     trivy config . --format sarif --output reports/trivy.sarif
+#   # 4️⃣ TRIVY – Terraform config scan (NO Docker)
+#     # - name: Run Trivy (Terraform)
+#     #   uses: aquasecurity/trivy-action@0.20.0
+#     #   with:
+#     #     scan-type: config
+#     #     scan-ref: .
+#     #     format: sarif
+#     #     output: trivy.sarif
+#     #     severity: CRITICAL,HIGH
 
-    # - name: Upload Trivy SARIF
-    #   uses: github/codeql-action/upload-sarif@v3
-    #   with:
-    #     sarif_file: reports/trivy.sarif
+#     # - name: Upload Trivy results
+#     #   uses: github/codeql-action/upload-sarif@v3
+#     #   with:
+#     #     sarif_file: trivy.sarif
 
-    # - name: List all SARIF files
-    #   run: find . -name "*.sarif"
+#     # - name: Run Trivy
+#     #   continue-on-error: true
+#     #   run: |
+#     #     mkdir -p reports
+#     #     trivy config . --format sarif --output reports/trivy.sarif
+
+#     # - name: Upload Trivy SARIF
+#     #   uses: github/codeql-action/upload-sarif@v3
+#     #   with:
+#     #     sarif_file: reports/trivy.sarif
+
+#     # - name: List all SARIF files
+#     #   run: find . -name "*.sarif"
    
 
 
-    # ------------------------
-    # OPA / Conftest
-    # ------------------------
-    - name: Install Conftest
-      run: |
-        CONFTEST_VERSION=0.66.0
-        wget https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz
-        tar -xzf conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz
-        chmod +x conftest
-        sudo mv conftest /usr/local/bin/
-        conftest --version
+#     # ------------------------
+#     # OPA / Conftest
+#     # ------------------------
+#     - name: Install Conftest
+#       run: |
+#         CONFTEST_VERSION=0.66.0
+#         wget https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz
+#         tar -xzf conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz
+#         chmod +x conftest
+#         sudo mv conftest /usr/local/bin/
+#         conftest --version
 
-    - name: Remove backend for PR scans
-      run: rm -f backend.tf
+#     - name: Remove backend for PR scans
+#       run: rm -f backend.tf
 
-    - name: Terraform Init (no backend)
-      run: terraform init -backend=false -input=false
+#     - name: Terraform Init (no backend)
+#       run: terraform init -backend=false -input=false
 
 
-    - name: Terraform Config to JSON
-      run: terraform show -json > tfconfig.json
+#     - name: Terraform Config to JSON
+#       run: terraform show -json > tfconfig.json
 
-    - name: Run OPA Policies
-      run: conftest test tfconfig.json --policy policies/terraform
+#     - name: Run OPA Policies
+#       run: conftest test tfconfig.json --policy policies/terraform
     
-    # - name: Run OPA Policies (Conftest → SARIF)
-    #   run: |
-    #     mkdir -p reports
-    #     conftest test tfconfig.json --policy policies/terraform --output sarif > reports/conftest.sarif
-    #   continue-on-error: true  # Don't fail the job if policy violations found
+#     # - name: Run OPA Policies (Conftest → SARIF)
+#     #   run: |
+#     #     mkdir -p reports
+#     #     conftest test tfconfig.json --policy policies/terraform --output sarif > reports/conftest.sarif
+#     #   continue-on-error: true  # Don't fail the job if policy violations found
 
-    # - name: Upload Conftest SARIF
-    #   uses: github/codeql-action/upload-sarif@v4
-    #   if: always()  # Upload even if previous step had violations
-    #   with:
-    #     sarif_file: reports/conftest.sarif
+#     # - name: Upload Conftest SARIF
+#     #   uses: github/codeql-action/upload-sarif@v4
+#     #   if: always()  # Upload even if previous step had violations
+#     #   with:
+#     #     sarif_file: reports/conftest.sarif
     
 
-    # ------------------------
-    # SBOM
-    # ------------------------
-# ------------------------
-# SBOM Generation (CycloneDX)
-# ------------------------
-    # - name: Generate SBOM
-    #   uses: CycloneDX/gh-terraform@v1
-    #   with:
-    #     path: .
-    #     format: json
+#     # ------------------------
+#     # SBOM
+#     # ------------------------
+# # ------------------------
+# # SBOM Generation (CycloneDX)
+# # ------------------------
+#     # - name: Generate SBOM
+#     #   uses: CycloneDX/gh-terraform@v1
+#     #   with:
+#     #     path: .
+#     #     format: json
 
-    # - name: Upload SBOM
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: terraform-sbom
-    #     path: bom.json
+#     # - name: Upload SBOM
+#     #   uses: actions/upload-artifact@v4
+#     #   with:
+#     #     name: terraform-sbom
+#     #     path: bom.json
 
 
  
