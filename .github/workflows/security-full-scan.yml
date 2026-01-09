@@ -152,23 +152,19 @@ jobs:
           sudo mv conftest /usr/local/bin/
           conftest --version
 
-      - name: Remove backend for PR scans
-        run: rm -f backend.tf
-
-      - name: Terraform Init (no backend)
-        run: terraform init -backend=false -input=false
+      - name: Remove backend configuration for security scanning
+        run: rm -f envs/dev/backend.tf
 
       - name: Terraform Config to JSON
+        working-directory: ./envs/dev
         run: |
-          cd envs/dev
-          terraform init -backend=false
-          terraform show -json > ../../tfconfig.json
-
-
+          terraform init -backend=false -input=false
+          terraform plan -out=tfplan -input=false || true
+          terraform show -json tfplan > ../../tfconfig.json
 
       - name: Run OPA Policy Tests
         continue-on-error: true
-        run: conftest test tfconfig.json --policy Infrademo/policies/terraform
+        run: conftest test tfconfig.json --policy policies/terraform
 
       # ------------------------
       # Security Summary
