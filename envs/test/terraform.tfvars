@@ -14,9 +14,9 @@ appi_name = "test-appi1"
 
 kv_name = "keutestkv225"
 
-asp_name = "testaspplan"
+asp_name = "testaspplan225"
 
-web_name = "testwebapp1234"
+web_name = "testwebapp225"
 
 app_service_sku = "P1v3"
 
