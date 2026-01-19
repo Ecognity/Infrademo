@@ -68,6 +68,7 @@ module "app_service" {
 
   app_insights_connection_string = module.app_insights.connection_string
 
+  enable_staging_slot = true
 
 }
 

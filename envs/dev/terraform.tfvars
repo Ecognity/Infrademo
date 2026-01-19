@@ -18,7 +18,7 @@ asp_name = "demoaspplan"
 
 web_name = "demowebapp1234"
 
-app_service_sku = "P1v3"
+app_service_sku = "S3"
 
 
 

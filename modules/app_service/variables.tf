@@ -12,3 +12,9 @@ variable "demo_secret_kv_reference" {
   type    = string
   default = null
 }
+
+variable "enable_staging_slot" {
+  type        = bool
+  default     = false
+  description = "Enable staging slot for blue-green deployment"
+}

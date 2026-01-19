@@ -43,3 +43,35 @@ resource "azurerm_linux_web_app" "web" {
 
 
 }
+
+resource "azurerm_linux_web_app_slot" "staging" {
+  count              = var.enable_staging_slot ? 1 : 0
+  name               = "staging"
+  app_service_id     = azurerm_linux_web_app.web.id
+
+  https_only = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {
+    always_on           = true
+    ftps_state          = "Disabled"
+    minimum_tls_version = "1.2"
+
+    application_stack {
+      dotnet_version = "8.0"
+    }
+  }
+
+  app_settings = merge(
+    {
+      "ASPNETCORE_ENVIRONMENT"                = "Staging"
+      "APPLICATIONINSIGHTS_CONNECTION_STRING" = var.app_insights_connection_string
+    },
+    var.demo_secret_kv_reference == null ? {} : {
+      "DEMO_SECRET" = var.demo_secret_kv_reference
+    }
+  )
+}
